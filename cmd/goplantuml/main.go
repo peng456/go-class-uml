@@ -110,6 +110,8 @@ func main() {
 	}
 	rendered := result.Render()
 	var writer io.Writer
+	fileName := "go-class-mermaid.mm"
+	output = &fileName
 	if *output != "" {
 		writer, err = os.Create(*output)
 		if err != nil {
@@ -118,6 +120,8 @@ func main() {
 	} else {
 		writer = os.Stdout
 	}
+
+	// 将 rendered 写入文件
 	fmt.Fprint(writer, rendered)
 }
 

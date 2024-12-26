@@ -809,7 +809,6 @@ func (p *ClassParser) JudgeRepeat() {
 	//
 	// }
 	for k, _ := range p.allStructs {
-		println(k)
 		name := getLastNamespaceNew(p, k)
 		if _, ok := p.allNameIsRepeat[name]; ok {
 			p.allNameIsRepeat[name] = true
