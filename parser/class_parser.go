@@ -36,9 +36,15 @@ type LineStringBuilder struct {
 
 const tab = "    "
 const builtinPackageName = "__builtin__"
-const implements = `"implements"`
-const extends = `"extends"`
-const aggregates = `"uses"`
+
+// const implements = `"implements"`
+const implements = `implements`
+
+// const extends = `"extends"`
+const extends = `extends`
+
+// const aggregates = `"uses"`
+const aggregates = ``
 const aliasOf = `"alias of"`
 
 // WriteLineWithDepth will write the given text with added tabs at the beginning into the string builder.
@@ -116,13 +122,14 @@ type RenderingOption int
 // a map of structure_names -> Structs
 type ClassParser struct {
 	renderingOptions   *RenderingOptions
-	structure          map[string]map[string]*Struct
+	structure          map[string]map[string]*Struct // 这是以包为顶级存储的结构体
 	currentPackageName string
 	allInterfaces      map[string]struct{}
 	allStructs         map[string]struct{}
 	allImports         map[string]string
 	allAliases         map[string]*Alias
 	allRenamedStructs  map[string]map[string]string
+	allNameIsRepeat    map[string]bool
 }
 
 // NewClassDiagramWithOptions returns a new classParser with which can Render the class diagram of
@@ -136,7 +143,7 @@ func NewClassDiagramWithOptions(options *ClassDiagramOptions) (*ClassParser, err
 			Methods:          true,
 			Compositions:     true,
 			Implementations:  true,
-			Aliases:          true,
+			Aliases:          false,
 			ConnectionLabels: false,
 			Title:            "",
 			Notes:            "",
@@ -147,6 +154,7 @@ func NewClassDiagramWithOptions(options *ClassDiagramOptions) (*ClassParser, err
 		allImports:        make(map[string]string),
 		allAliases:        make(map[string]*Alias),
 		allRenamedStructs: make(map[string]map[string]string),
+		allNameIsRepeat:   make(map[string]bool),
 	}
 	ignoreDirectoryMap := map[string]struct{}{}
 	for _, dir := range options.IgnoredDirectories {
@@ -402,7 +410,7 @@ func getBasicType(theType ast.Expr) ast.Expr {
 // Render returns a string of the class diagram that this parser has generated.
 func (p *ClassParser) Render() string {
 	str := &LineStringBuilder{}
-	str.WriteLineWithDepth(0, "@startuml")
+	str.WriteLineWithDepth(0, "classDiagram\n")
 	if p.renderingOptions.Title != "" {
 		str.WriteLineWithDepth(0, fmt.Sprintf(`title %s`, p.renderingOptions.Title))
 	}
@@ -431,16 +439,22 @@ func (p *ClassParser) Render() string {
 	if !p.renderingOptions.Methods {
 		str.WriteLineWithDepth(0, "hide methods")
 	}
-	str.WriteLineWithDepth(0, "@enduml")
+	// str.WriteLineWithDepth(0, "@enduml")
 	return str.String()
 }
 
 func (p *ClassParser) renderStructures(pack string, structures map[string]*Struct, str *LineStringBuilder) {
 	if len(structures) > 0 {
+
+		//  组合  不同 struct 嵌入
 		composition := &LineStringBuilder{}
+
+		// 继承 struct 集成 interface
 		extends := &LineStringBuilder{}
+
+		// 聚合 持有对其他对象的引用
 		aggregations := &LineStringBuilder{}
-		str.WriteLineWithDepth(0, fmt.Sprintf(`namespace %s {`, pack))
+		// str.WriteLineWithDepth(0, fmt.Sprintf(`namespace %s {`, pack))
 
 		names := []string{}
 		for name := range structures {
@@ -449,28 +463,39 @@ func (p *ClassParser) renderStructures(pack string, structures map[string]*Struc
 
 		sort.Strings(names)
 
+		// 结构体 处理
 		for _, name := range names {
 			structure := structures[name]
+			// 渲染结构体 && 以及 与其 方法、属性、关系类【interface 、组合相关的结构体】
+			// 组装  与结构体  的关系: 相关系类【interface(extends) 、组合相关的结构体(composition (has-a))、聚合（aggregations（我理解是数组形式来包含其他  has-many））】
 			p.renderStructure(structure, pack, name, str, composition, extends, aggregations)
 		}
-		var orderedRenamedStructs []string
-		for tempName := range p.allRenamedStructs[pack] {
-			orderedRenamedStructs = append(orderedRenamedStructs, tempName)
-		}
-		sort.Strings(orderedRenamedStructs)
-		for _, tempName := range orderedRenamedStructs {
-			name := p.allRenamedStructs[pack][tempName]
-			str.WriteLineWithDepth(1, fmt.Sprintf(`class "%s" as %s {`, name, tempName))
-			str.WriteLineWithDepth(2, aliasComplexNameComment)
-			str.WriteLineWithDepth(1, "}")
-		}
-		str.WriteLineWithDepth(0, fmt.Sprintf(`}`))
+
+		// var orderedRenamedStructs []string
+		// for tempName := range p.allRenamedStructs[pack] {
+		// 	orderedRenamedStructs = append(orderedRenamedStructs, tempName)
+		// }
+		// sort.Strings(orderedRenamedStructs)
+		// for _, tempName := range orderedRenamedStructs {
+		// 	name := p.allRenamedStructs[pack][tempName]
+		// 	// str.WriteLineWithDepth(1, fmt.Sprintf(`class "%s" as %s {`, name, tempName))
+		// 	str.WriteLineWithDepth(1, fmt.Sprintf(`class %s {`, tempName))
+		// 	str.WriteLineWithDepth(2, fmt.Sprintf(`<<alias_%s>>`, name))
+		// 	str.WriteLineWithDepth(1, "}")
+		// }
+
+		// 关系 处理
+		// go struct 组合
 		if p.renderingOptions.Compositions {
 			str.WriteLineWithDepth(0, composition.String())
 		}
+
+		// go struct 继承 interface
 		if p.renderingOptions.Implementations {
 			str.WriteLineWithDepth(0, extends.String())
 		}
+
+		// go struct 聚合 多个其他结构体  数组
 		if p.renderingOptions.Aggregations {
 			str.WriteLineWithDepth(0, aggregations.String())
 		}
@@ -505,36 +530,45 @@ func (p *ClassParser) renderAliases(str *LineStringBuilder) {
 
 func (p *ClassParser) renderStructure(structure *Struct, pack string, name string, str *LineStringBuilder, composition *LineStringBuilder, extends *LineStringBuilder, aggregations *LineStringBuilder) {
 
+	// 私有字段
 	privateFields := &LineStringBuilder{}
+	// 公共字段
 	publicFields := &LineStringBuilder{}
+	// 私有方法
 	privateMethods := &LineStringBuilder{}
+	// 公共方法
 	publicMethods := &LineStringBuilder{}
-	sType := ""
+	// sType := ""
 	renderStructureType := structure.Type
-	switch structure.Type {
-	case "class":
-		sType = "<< (S,Aquamarine) >>"
-	case "alias":
-		sType = "<< (T, #FF7700) >> "
-		renderStructureType = "class"
+
+	if renderStructureType != "class" {
+		str.WriteLineWithDepth(1, fmt.Sprintf(`%s %s {`, "class", getLastNamespace(p, name)))
+		str.WriteLineWithDepth(2, fmt.Sprintf(`<<%s>>`, renderStructureType))
+	} else {
+		str.WriteLineWithDepth(1, fmt.Sprintf(`%s %s {`, "class", getLastNamespace(p, name)))
+		str.WriteLineWithDepth(2, fmt.Sprintf(`<<%s>>`, "struct"))
 
 	}
-	str.WriteLineWithDepth(1, fmt.Sprintf(`%s %s %s {`, renderStructureType, name, sType))
+
 	p.renderStructFields(structure, privateFields, publicFields)
 	p.renderStructMethods(structure, privateMethods, publicMethods)
+
+	// 组合
 	p.renderCompositions(structure, name, composition)
+	// 实现接口
 	p.renderExtends(structure, name, extends)
+	// 聚合
 	p.renderAggregations(structure, name, aggregations)
-	if privateFields.Len() > 0 {
+	if privateFields.Len() > 0 && p.renderingOptions.Fields {
 		str.WriteLineWithDepth(0, privateFields.String())
 	}
-	if publicFields.Len() > 0 {
+	if publicFields.Len() > 0 && p.renderingOptions.Fields {
 		str.WriteLineWithDepth(0, publicFields.String())
 	}
-	if privateMethods.Len() > 0 {
+	if privateMethods.Len() > 0 && p.renderingOptions.Methods {
 		str.WriteLineWithDepth(0, privateMethods.String())
 	}
-	if publicMethods.Len() > 0 {
+	if publicMethods.Len() > 0 && p.renderingOptions.Methods {
 		str.WriteLineWithDepth(0, publicMethods.String())
 	}
 	str.WriteLineWithDepth(1, fmt.Sprintf(`}`))
@@ -551,13 +585,33 @@ func (p *ClassParser) renderCompositions(structure *Struct, name string, composi
 		if p.renderingOptions.ConnectionLabels {
 			composedString = extends
 		}
-		c = fmt.Sprintf(`"%s" *-- %s"%s.%s"`, c, composedString, structure.PackageName, name)
+
+		c = fmt.Sprintf(`%s *-- %s : %s`, getLastNamespace(p, c), name, composedString)
 		orderedCompositions = append(orderedCompositions, c)
 	}
 	sort.Strings(orderedCompositions)
 	for _, c := range orderedCompositions {
-		composition.WriteLineWithDepth(0, c)
+		composition.WriteLineWithDepth(1, c)
 	}
+}
+
+func getLastNamespaceNew(p *ClassParser, name string) string {
+
+	arr := strings.Split(name, ".")
+	return arr[len(arr)-1]
+}
+
+func getLastNamespace(p *ClassParser, name string) string {
+	// 判断是否名称重复; 重复则使用 包名+name
+	tmpName := getLastNamespaceNew(p, name)
+	if value, ok := p.allNameIsRepeat[tmpName]; ok && value {
+		// 重复则 逗号隔开，然后 _ join
+		arr := strings.Split(name, ".")
+		return strings.Join(arr, "_")
+	} else {
+		return tmpName
+	}
+
 }
 
 func (p *ClassParser) renderAggregations(structure *Struct, name string, aggregations *LineStringBuilder) {
@@ -593,7 +647,12 @@ func (p *ClassParser) renderAggregationMap(aggregationMap map[string]struct{}, s
 			aggregationString = aggregates
 		}
 		if p.getPackageName(a, structure) != builtinPackageName {
-			aggregations.WriteLineWithDepth(0, fmt.Sprintf(`"%s.%s"%s o-- "%s"`, structure.PackageName, name, aggregationString, a))
+			// aggregations.WriteLineWithDepth(0, fmt.Sprintf(`"%s.%s"%s o-- "%s"`, structure.PackageName, name, aggregationString, a))
+
+			name = getLastNamespace(p, name)
+
+			aName := getLastNamespace(p, a)
+			aggregations.WriteLineWithDepth(1, fmt.Sprintf(`%s %s o-- %s : aggregation`, name, aggregationString, aName))
 		}
 	}
 }
@@ -617,12 +676,19 @@ func (p *ClassParser) renderExtends(structure *Struct, name string, extends *Lin
 		if p.renderingOptions.ConnectionLabels {
 			implementString = implements
 		}
-		c = fmt.Sprintf(`"%s" <|-- %s"%s.%s"`, c, implementString, structure.PackageName, name)
+		// 继承
+		// c = fmt.Sprintf(`"%s" <|-- %s"%s.%s"`, c, implementString, structure.PackageName, name)
+		// 实现
+
+		arr := strings.Split(c, ".")
+		left := arr[len(arr)-1]
+
+		c = fmt.Sprintf(`%s --|> %s : %s`, left, name, implementString)
 		orderedExtends = append(orderedExtends, c)
 	}
 	sort.Strings(orderedExtends)
 	for _, c := range orderedExtends {
-		extends.WriteLineWithDepth(0, c)
+		extends.WriteLineWithDepth(1, c)
 	}
 }
 
@@ -737,6 +803,22 @@ func (p *ClassParser) SetRenderingOptions(ro map[RenderingOption]interface{}) er
 	}
 	return nil
 }
+
+func (p *ClassParser) JudgeRepeat() {
+	// for k, _ := range p.structure {
+	//
+	// }
+	for k, _ := range p.allStructs {
+		println(k)
+		name := getLastNamespaceNew(p, k)
+		if _, ok := p.allNameIsRepeat[name]; ok {
+			p.allNameIsRepeat[name] = true
+		} else {
+			p.allNameIsRepeat[name] = false
+		}
+	}
+}
+
 func generateRenamedStructName(currentName string) string {
 	reg, _ := regexp.Compile("[^a-zA-Z0-9]+")
 	return reg.ReplaceAllString(currentName, "")

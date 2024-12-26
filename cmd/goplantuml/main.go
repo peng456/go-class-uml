@@ -4,12 +4,13 @@ import (
 	"errors"
 	"flag"
 	"fmt"
-	goplantuml "github.com/jfeliu007/goplantuml/parser"
 	"io"
 	"os"
 	"path/filepath"
 	"sort"
 	"strings"
+
+	goplantuml "github.com/jfeliu007/goplantuml/parser"
 )
 
 // RenderingOptionSlice will implements the sort interface
@@ -36,7 +37,7 @@ func main() {
 	ignore := flag.String("ignore", "", "comma separated list of folders to ignore")
 	showAggregations := flag.Bool("show-aggregations", false, "renders public aggregations even when -hide-connections is used (do not render by default)")
 	hideFields := flag.Bool("hide-fields", false, "hides fields")
-	hideMethods := flag.Bool("hide-methods", false, "hides methods")
+	hideMethods := flag.Bool("hide-methods", true, "hides methods")
 	hideConnections := flag.Bool("hide-connections", false, "hides all connections in the diagram")
 	showCompositions := flag.Bool("show-compositions", false, "Shows compositions even when -hide-connections is used")
 	showImplementations := flag.Bool("show-implementations", false, "Shows implementations even when -hide-connections is used")
@@ -54,6 +55,7 @@ func main() {
 		goplantuml.RenderFields:            !*hideFields,
 		goplantuml.RenderMethods:           !*hideMethods,
 		goplantuml.RenderAggregations:      *showAggregations,
+		goplantuml.RenderAliases:           *showAliases,
 		goplantuml.RenderTitle:             *title,
 		goplantuml.AggregatePrivateMembers: *aggregatePrivateMembers,
 		goplantuml.RenderPrivateMembers:    !*hidePrivateMembers,
@@ -100,6 +102,7 @@ func main() {
 	}
 
 	result, err := goplantuml.NewClassDiagram(dirs, ignoredDirectories, *recursive)
+	result.JudgeRepeat()
 	result.SetRenderingOptions(renderingOptions)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err.Error())

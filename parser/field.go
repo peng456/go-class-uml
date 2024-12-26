@@ -72,7 +72,8 @@ func getMapType(v *ast.MapType, aliases map[string]string) (string, []string) {
 
 	t1, f1 := getFieldType(v.Key, aliases)
 	t2, f2 := getFieldType(v.Value, aliases)
-	return fmt.Sprintf("<font color=blue>map</font>[%s]%s", t1, t2), append(f1, f2...)
+	// return fmt.Sprintf("<font color=blue>map</font>[%s]%s", t1, t2), append(f1, f2...)
+	return fmt.Sprintf("map[%s]%s", t1, t2), append(f1, f2...)
 }
 
 func getStarExp(v *ast.StarExpr, aliases map[string]string) (string, []string) {
@@ -84,7 +85,9 @@ func getStarExp(v *ast.StarExpr, aliases map[string]string) (string, []string) {
 func getChanType(v *ast.ChanType, aliases map[string]string) (string, []string) {
 
 	t, f := getFieldType(v.Value, aliases)
-	return fmt.Sprintf("<font color=blue>chan</font> %s", t), f
+	// return fmt.Sprintf("<font color=blue>chan</font> %s", t), f
+	return fmt.Sprintf("chan %s", t), f
+
 }
 
 func getStructType(v *ast.StructType, aliases map[string]string) (string, []string) {
@@ -94,7 +97,9 @@ func getStructType(v *ast.StructType, aliases map[string]string) (string, []stri
 		t, _ := getFieldType(field.Type, aliases)
 		fieldList = append(fieldList, t)
 	}
-	return fmt.Sprintf("<font color=blue>struct</font>{%s}", strings.Join(fieldList, ", ")), []string{}
+	// return fmt.Sprintf("<font color=blue>struct</font>{%s}", strings.Join(fieldList, ", ")), []string{}
+	return fmt.Sprintf("struct%s", strings.Join(fieldList, ", ")), []string{}
+
 }
 
 func getInterfaceType(v *ast.InterfaceType, aliases map[string]string) (string, []string) {
@@ -108,7 +113,9 @@ func getInterfaceType(v *ast.InterfaceType, aliases map[string]string) (string, 
 		t, _ := getFieldType(field.Type, aliases)
 		methods = append(methods, methodName+" "+t)
 	}
-	return fmt.Sprintf("<font color=blue>interface</font>{%s}", strings.Join(methods, "; ")), []string{}
+	// return fmt.Sprintf("<font color=blue>interface</font>{%s}", strings.Join(methods, "; ")), []string{}
+	return fmt.Sprintf("interface%s", strings.Join(methods, "; ")), []string{}
+
 }
 
 func getFuncType(v *ast.FuncType, aliases map[string]string) (string, []string) {
@@ -128,7 +135,9 @@ func getFuncType(v *ast.FuncType, aliases map[string]string) (string, []string) 
 	} else {
 		returns = strings.Join(returnList, "")
 	}
-	return fmt.Sprintf("<font color=blue>func</font>(%s) %s", strings.Join(params, ", "), returns), []string{}
+	// return fmt.Sprintf("<font color=blue>func</font>(%s) %s", strings.Join(params, ", "), returns), []string{}
+	return fmt.Sprintf("func(%s) %s", strings.Join(params, ", "), returns), []string{}
+
 }
 
 func getEllipsis(v *ast.Ellipsis, aliases map[string]string) (string, []string) {
