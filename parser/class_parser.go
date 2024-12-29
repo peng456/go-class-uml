@@ -805,9 +805,6 @@ func (p *ClassParser) SetRenderingOptions(ro map[RenderingOption]interface{}) er
 }
 
 func (p *ClassParser) JudgeRepeat() {
-	// for k, _ := range p.structure {
-	//
-	// }
 	for k, _ := range p.allStructs {
 		name := getLastNamespaceNew(p, k)
 		if _, ok := p.allNameIsRepeat[name]; ok {

@@ -1,16 +1,19 @@
 package main
 
 import (
+	"context"
 	"errors"
 	"flag"
 	"fmt"
-	"io"
 	"os"
 	"path/filepath"
 	"sort"
 	"strings"
 
-	goplantuml "github.com/jfeliu007/goplantuml/parser"
+	// "../../mermaidgo"
+	"my.pa/test2/mermaidgo"
+
+	goplantuml "my.pa/test2/parser"
 )
 
 // RenderingOptionSlice will implements the sort interface
@@ -42,10 +45,12 @@ func main() {
 	showCompositions := flag.Bool("show-compositions", false, "Shows compositions even when -hide-connections is used")
 	showImplementations := flag.Bool("show-implementations", false, "Shows implementations even when -hide-connections is used")
 	showAliases := flag.Bool("show-aliases", false, "Shows aliases even when -hide-connections is used")
-	showConnectionLabels := flag.Bool("show-connection-labels", false, "Shows labels in the connections to identify the connections types (e.g. extends, implements, aggregates, alias of")
+	showConnectionLabels := flag.Bool("show-connection-labels", true, "Shows labels in the connections to identify the connections types (e.g. extends, implements, aggregates, alias of")
 	title := flag.String("title", "", "Title of the generated diagram")
 	notes := flag.String("notes", "", "Comma separated list of notes to be added to the diagram")
-	output := flag.String("output", "", "output file path. If omitted, then this will default to standard output")
+	// output := flag.String("output", "", "output file path. If omitted, then this will default to standard output")
+	saveType := flag.String("st", "svg", "save diagram type : svg or png ")
+	scale := flag.Int("scale", 0, "0 or 2.0")
 	showOptionsAsNote := flag.Bool("show-options-as-note", false, "Show a note in the diagram with the none evident options ran with this CLI")
 	aggregatePrivateMembers := flag.Bool("aggregate-private-members", false, "Show aggregations for private members. Ignored if -show-aggregations is not used.")
 	hidePrivateMembers := flag.Bool("hide-private-members", false, "Hide private fields and methods")
@@ -89,40 +94,58 @@ func main() {
 	dirs, err := getDirectories()
 
 	if err != nil {
-		fmt.Println("usage:\ngoplantuml <DIR>\nDIR Must be a valid directory")
+		fmt.Println("usage:\ngoClassDiagrams <DIR>\nDIR Must be a valid directory")
 		fmt.Fprintln(os.Stderr, err.Error())
 		os.Exit(1)
 	}
 	ignoredDirectories, err := getIgnoredDirectories(*ignore)
 	if err != nil {
 
-		fmt.Println("usage:\ngoplantuml [-ignore=<DIRLIST>]\nDIRLIST Must be a valid comma separated list of existing directories")
+		fmt.Println("usage:\ngoClassDiagrams [-ignore=<DIRLIST>]\nDIRLIST Must be a valid comma separated list of existing directories")
 		fmt.Fprintln(os.Stderr, err.Error())
 		os.Exit(1)
 	}
 
 	result, err := goplantuml.NewClassDiagram(dirs, ignoredDirectories, *recursive)
-	result.JudgeRepeat()
 	result.SetRenderingOptions(renderingOptions)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err.Error())
 		os.Exit(1)
 	}
 	rendered := result.Render()
-	var writer io.Writer
-	fileName := "go-class-mermaid.mm"
-	output = &fileName
-	if *output != "" {
-		writer, err = os.Create(*output)
-		if err != nil {
-			fmt.Fprintln(os.Stderr, err.Error())
+
+	ctx := context.Background()
+	// mermaid.initialize({
+	//   maxTextSize: 90000
+	// });
+	re, _ := mermaidgo.NewRenderEngine(ctx)
+	defer re.Cancel()
+
+	content := rendered
+
+	// 根据 参数 获取 name
+
+	// fileName := "go-class-mermaid.mm"
+	fileName, _ := getSaveFileName()
+	outFileName := "/tmp/" + fileName
+
+	switch *saveType {
+	case "svg":
+		svg_content, _ := re.Render(content)
+		os.WriteFile(outFileName+".svg", []byte(svg_content), 0644)
+
+	case "png":
+		if *scale == (int)(0) {
+			// get the result as PNG bytes
+			png_in_bytes, _, _ := re.RenderAsPng(content)
+			os.WriteFile(outFileName+".png", png_in_bytes, 0644)
+
+		} else {
+			scaled_png_in_bytes, _, _ := re.RenderAsScaledPng(content, 2.0)
+			os.WriteFile(outFileName+"_scaled.png", scaled_png_in_bytes, 0644)
 		}
-	} else {
-		writer = os.Stdout
 	}
 
-	// 将 rendered 写入文件
-	fmt.Fprint(writer, rendered)
 }
 
 func getDirectories() ([]string, error) {
@@ -137,8 +160,16 @@ func getDirectories() ([]string, error) {
 		if os.IsNotExist(err) {
 			return nil, fmt.Errorf("could not find directory %s", dir)
 		}
+
 		if !fi.Mode().IsDir() {
+			// 判断是否是 go 文件
+			if strings.HasSuffix(fi.Name(), ".go") {
+				dirs = append(dirs, dir)
+
+				break
+			}
 			return nil, fmt.Errorf("%s is not a directory", dir)
+
 		}
 		dirAbs, err := filepath.Abs(dir)
 		if err != nil {
@@ -147,6 +178,27 @@ func getDirectories() ([]string, error) {
 		dirs = append(dirs, dirAbs)
 	}
 	return dirs, nil
+}
+
+func getSaveFileName() (string, error) {
+
+	// return "go-class-mermaid.mm", nil
+	args := flag.Args()
+
+	name := ""
+	for _, dir := range args {
+		fi, _ := os.Stat(dir)
+		if fi.Mode().IsDir() {
+			// 字符串 先 spilt 然后获取最后一个
+			// name = strings.Split(strings.Trim(dir, "/"), "/").pop()
+			nameArr := strings.Split(strings.Trim(dir, "/"), "/")
+			name = nameArr[len(nameArr)-1]
+		} else {
+			name = strings.TrimSuffix(fi.Name(), ".go")
+		}
+
+	}
+	return name, nil
 }
 
 func getIgnoredDirectories(list string) ([]string, error) {
