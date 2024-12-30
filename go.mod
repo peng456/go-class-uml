@@ -1,8 +1,6 @@
 module github.com/peng456/go-class-uml
 
-go 1.23
-
-toolchain go1.23.4
+go 1.17
 
 require (
 	github.com/chromedp/cdproto v0.0.0-20241222144035-c16d098c0fb6
