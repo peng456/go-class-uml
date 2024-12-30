@@ -15,6 +15,7 @@ import (
 
 	goplantuml "github.com/peng456/go-class-uml/parser"
 )
+go install github.com/peng/gogo-class-uml/cmd/goplantuml@latest
 
 // RenderingOptionSlice will implements the sort interface
 type RenderingOptionSlice []goplantuml.RenderingOption
