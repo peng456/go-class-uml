@@ -1,16 +1,14 @@
-[![godoc reference](https://img.shields.io/badge/godoc-reference-blue.svg)](https://godoc.org/github.com/jfeliu007/goplantuml/parser) [![Go Report Card](https://goreportcard.com/badge/github.com/jfeliu007/goplantuml)](https://goreportcard.com/report/github.com/jfeliu007/goplantuml) [![codecov](https://codecov.io/gh/jfeliu007/goplantuml/branch/master/graph/badge.svg)](https://codecov.io/gh/jfeliu007/goplantuml) [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
-[![GitHub release](https://img.shields.io/github/release/jfeliu007/goplantuml.svg)](https://github.com/jfeliu007/goplantuml/releases/)
+[![godoc reference](https://img.shields.io/badge/godoc-reference-blue.svg)](https://godoc.org/github.com/peng456/go-class-uml/parser) [![Go Report Card](https://goreportcard.com/badge/github.com/peng456/go-class-uml)](https://goreportcard.com/report/github.com/peng456/go-class-uml) [![codecov](https://codecov.io/gh/peng456/go-class-uml/branch/master/graph/badge.svg)](https://codecov.io/gh/peng456/go-class-uml) [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
+[![GitHub release](https://img.shields.io/github/release/peng456/go-class-uml.svg)](https://github.com/peng456/go-class-uml/releases/)
 [![Mentioned in Awesome Go](https://awesome.re/mentioned-badge.svg)](https://github.com/avelino/awesome-go) 
 [![DUMELS Diagram](https://www.dumels.com/api/v1/badge/23ff0222-e93b-4e9f-a4ef-4d5d9b7a5c7d)](https://www.dumels.com/diagram/23ff0222-e93b-4e9f-a4ef-4d5d9b7a5c7d) 
-# GoPlantUML V2
+# go-class-uml
 
-GoPlantUML is an open-source tool developed to streamline the process of generating PlantUML diagrams from Go source code. With GoPlantUML, developers can effortlessly visualize the structure and relationships within their Go projects, aiding in code comprehension and documentation. By parsing Go source code and producing PlantUML diagrams, GoPlantUML empowers developers to create clear and concise visual representations of their codebase architecture, package dependencies, and function interactions. This tool simplifies the documentation process and enhances collaboration among team members by providing a visual overview of complex Go projects. GoPlantUML is actively maintained and welcomes contributions from the Go community.
+go-class-uml is an open-source tool developed to streamline the process of generating go class diagrams from Go source code. With go-class-uml, developers can effortlessly visualize the structure and relationships within their Go projects, aiding in code comprehension and documentation. By parsing Go source code and producing diagrams svg .eg, go-class-uml empowers developers to create clear and concise visual representations of their codebase architecture, package dependencies, and function interactions. This tool simplifies the documentation process and enhances collaboration among team members by providing a visual overview of complex Go projects. go-class-uml is actively maintained and welcomes contributions from the Go community.
 
-## Want to try it on your code? 
-Take a look at [www.dumels.com](https://www.dumels.com). We have created dumels using this library. 
 
 ## Code of Conduct
-Please, review the code of conduct [here](https://github.com/jfeliu007/goplantuml/blob/master/CODE_OF_CONDUCT.md "here").
+Please, review the code of conduct [here](https://github.com/peng456/go-class-uml/blob/master/CODE_OF_CONDUCT.md "here").
 
 ### Prerequisites
 golang 1.17 or above
@@ -18,22 +16,20 @@ golang 1.17 or above
 ### Installing
 
 ```
-go get github.com/jfeliu007/goplantuml/parser
-go install github.com/jfeliu007/goplantuml/cmd/goplantuml@latest
+go get github.com/peng456/go-class-uml/parser
+go install github.com/peng456/go-class-uml/cmd/go-class-uml@latest
 ```
 
-This will install the command goplantuml in your GOPATH bin folder.
+This will install the command go-class-uml in your GOPATH bin folder.
 
 ### Usage
 
 ```
-goplantuml [-recursive] path/to/gofiles path/to/gofiles2
+go-class-uml [-recursive] path/to/gofiles /tmp/gofiles.svg
 ```
-```
-goplantuml [-recursive] path/to/gofiles path/to/gofiles2 > diagram_file_name.puml
-```
-```
-Usage of goplantuml:
+
+
+Usage of go-class-uml:
   -aggregate-private-members
         Show aggregations for private members. Ignored if -show-aggregations is not used.
   -hide-connections
@@ -70,139 +66,27 @@ Usage of goplantuml:
 
 #### Example
 ```
-goplantuml $GOPATH/src/github.com/jfeliu007/goplantuml/parser
+go-class-uml $GOPATH/src/github.com/peng456/go-class-uml/parser
 ```
 ```
 // echoes
 
-@startuml
-namespace parser {
-    class Struct {
-        + Functions []*Function
-        + Fields []*Parameter
-        + Type string
-        + Composition []string
-        + Extends []string
+@mermaid
+classDiagram
+
+    class apiSubsetResizeNotifyController {
+        <<struct>>
+        - ctx *gin.Context
+
+        + Req *pb_gen.ApiSubsetResizeNotifyReq
+        + Resp interface
 
     }
-    class LineStringBuilder {
-        + WriteLineWithDepth(depth int, str string) 
+    
 
-    }
-    class ClassParser {
-        - structure <font color=blue>map</font>[string]<font color=blue>map</font>[string]*Struct
-        - currentPackageName string
-        - allInterfaces <font color=blue>map</font>[string]<font color=blue>struct</font>{}
-        - allStructs <font color=blue>map</font>[string]<font color=blue>struct</font>{}
-
-        - structImplementsInterface(st *Struct, inter *Struct) 
-        - parsePackage(node ast.Node) 
-        - parseFileDeclarations(node ast.Decl) 
-        - addMethodToStruct(s *Struct, method *ast.Field) 
-        - getFunction(f *ast.FuncType, name string) 
-        - addFieldToStruct(s *Struct, field *ast.Field) 
-        - addToComposition(s *Struct, fType string) 
-        - addToExtends(s *Struct, fType string) 
-        - getOrCreateStruct(name string) 
-        - getStruct(structName string) 
-        - getFieldType(exp ast.Expr, includePackageName bool) 
-
-        + Render() 
-
-    }
-    class Parameter {
-        + Name string
-        + Type string
-
-    }
-    class Function {
-        + Name string
-        + Parameters []*Parameter
-        + ReturnValues []string
-
-    }
-}
-strings.Builder *-- parser.LineStringBuilder
+    Handler --|> apiSubsetResizeNotifyController : implements
 
 
-@enduml
-```
-```
-goplantuml $GOPATH/src/github.com/jfeliu007/goplantuml/parser > ClassDiagram.puml
-// Generates a file ClassDiagram.puml with the previous specifications
-```
 
-There are two different relationships considered in goplantuml:
-- Interface implementation
-- Type Composition
-
-The following example contains interface implementations and composition. Notice how the signature of the functions
-```golang
-package testingsupport
-
-//MyInterface only has one method, notice the signature return value
-type MyInterface interface {
-	foo() bool
-}
-
-//MyStruct1 will implement the foo() bool function so it will have an "extends" association with MyInterface
-type MyStruct1 struct {
-}
-
-func (s1 *MyStruct1) foo() bool {
-	return true
-}
-
-//MyStruct2 will be directly composed of MyStruct1 so it will have a composition relationship with it
-type MyStruct2 struct {
-	MyStruct1
-}
-
-//MyStruct3 will have a foo() function but the return value is not a bool, so it will not have any relationship with MyInterface
-type MyStruct3 struct {
-    Foo MyStruct1
-}
-
-func (s3 *MyStruct3) foo() {
-
-}
-```
-This will be generated from the previous code
-```
-@startuml
-namespace testingsupport {
-    interface MyInterface  {
-        - foo() bool
-
-    }
-    class MyStruct1 << (S,Aquamarine) >> {
-        - foo() bool
-
-    }
-    class MyStruct2 << (S,Aquamarine) >> {
-    }
-    class MyStruct3 << (S,Aquamarine) >> {
-        - foo() 
-
-        + Foo MyStruct1
-
-    }
-}
-testingsupport.MyStruct1 *-- testingsupport.MyStruct2
-
-testingsupport.MyInterface <|-- testingsupport.MyStruct1
-
-testingsupport.MyStruct3 o-- testingsupport.MyStruct1
-
-@enduml
-```
-
-![alt text](https://raw.githubusercontent.com/jfeliu007/goplantuml/master/example/example.png)
-
-### Diagram using www.dumels.com
-[UML Diagram](https://www.dumels.com/diagram/23ff0222-e93b-4e9f-a4ef-4d5d9b7a5c7d)
-
-### Diagram rendered in plantuml online server
-[UML Diagram](https://www.plantuml.com/plantuml/uml/SoWkIImgAStDuSfBp4qjBaXCJbKeIIqkoSnBBoujACWlAb6evb80WioyajIYD92qRwKdd0sIX09TXRJyV0rDXQJy_1mki6Wjc4pEIImk1ceABYagJIunLB2nKT08rd4iB4tCJIpAp4lLLB2p8zaO8np6uDHWJAozN70HRGMt_7o4ms6EgUL23HyzXDUqT7KLS4WQSM5gGmIZJGrkdOOOEX5-oiUhpI4rBmKOim00)
-
-For instructions on how to render these diagrams locally using plantuml please visit [https://plantuml.com](https://plantuml.com)
+go-class-uml $GOPATH/src/github.com/peng456/go-class-uml/parser > ClassDiagram.mmd
+// Generates a file ClassDiagram.mmd
