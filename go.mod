@@ -1,4 +1,4 @@
-module my.pa/test2
+module github.com/peng456/go-class-uml
 
 go 1.23
 
@@ -7,7 +7,6 @@ toolchain go1.23.4
 require (
 	github.com/chromedp/cdproto v0.0.0-20241222144035-c16d098c0fb6
 	github.com/chromedp/chromedp v0.11.2
-	github.com/jfeliu007/goplantuml v1.6.2
 	github.com/spf13/afero v1.11.0
 )
 
