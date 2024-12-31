@@ -6,7 +6,9 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"os/exec"
 	"path/filepath"
+	"runtime"
 	"sort"
 	"strings"
 
@@ -128,24 +130,76 @@ func main() {
 	// fileName := "go-class-mermaid.mm"
 	fileName, _ := getSaveFileName()
 	outFileName := "/tmp/" + fileName
-
+	fileSavePath := ""
 	switch *saveType {
 	case "svg":
 		svg_content, _ := re.Render(content)
-		os.WriteFile(outFileName+".svg", []byte(svg_content), 0644)
+		fileSavePath = outFileName + ".svg"
+		os.WriteFile(fileSavePath, []byte(svg_content), 0644)
 
 	case "png":
 		if *scale == (int)(0) {
 			// get the result as PNG bytes
 			png_in_bytes, _, _ := re.RenderAsPng(content)
-			os.WriteFile(outFileName+".png", png_in_bytes, 0644)
+			fileSavePath = outFileName + ".png"
+
+			os.WriteFile(fileSavePath, png_in_bytes, 0644)
 
 		} else {
+			fileSavePath = outFileName + "_scaled.png"
+
 			scaled_png_in_bytes, _, _ := re.RenderAsScaledPng(content, 2.0)
-			os.WriteFile(outFileName+"_scaled.png", scaled_png_in_bytes, 0644)
+			os.WriteFile(fileSavePath, scaled_png_in_bytes, 0644)
 		}
 	}
 
+	// 是否打开文件 默认 vscode 或者调用系统 选择对应的软件打开
+	errOpenFile := openFileWithVSCode(fileSavePath)
+	if errOpenFile != nil {
+		fmt.Println("Error:", errOpenFile)
+	} else {
+		fmt.Println("File opened successfully")
+	}
+
+}
+
+func openFileWithVSCode(filePath string) error {
+	// 检查 VS Code 是否安装
+	_, err := exec.LookPath("code")
+	if err != nil {
+		// 如果没有安装 VS Code，则使用系统默认程序打开文件
+		return openFile(filePath)
+	}
+
+	// 使用 VS Code 打开文件
+	cmd := exec.Command("code", filePath)
+	return cmd.Start()
+}
+
+func openFile(filePath string) error {
+	var cmd *exec.Cmd
+
+	switch runtime.GOOS {
+	case "darwin":
+		// macOS
+		// 检查 VS Code 是否安装
+		openApp := "open"
+		_, err := exec.LookPath("code")
+		if err == nil {
+			openApp = "code"
+		}
+		cmd = exec.Command(openApp, filePath)
+	case "linux":
+		// Linux
+		cmd = exec.Command("xdg-open", filePath)
+	case "windows":
+		// Windows
+		cmd = exec.Command("rundll32", "url.dll,FileProtocolHandler", filePath)
+	default:
+		return fmt.Errorf("unsupported platform")
+	}
+
+	return cmd.Start()
 }
 
 func getDirectories() ([]string, error) {
