@@ -13,7 +13,6 @@ import (
 	// "../../mermaidgo"
 	"github.com/peng456/goclassuml/mermaidgo"
 
-	"github.com/dop251/goja"
 	goplantuml "github.com/peng456/goclassuml/parser"
 )
 
@@ -107,27 +106,6 @@ func main() {
 		os.Exit(1)
 	}
 
-	vm := goja.New()
-
-	// Mermaid.js JS 代码（简化版）
-	mermaidScript := `
-        const mermaid = require('mermaid');
-        mermaid.initialize({ startOnLoad: false });
-        const diagram = 'graph TD; A-->B; A-->C; B-->D; C-->D';
-        const svg = mermaid.render('graphDiv', diagram);
-        svg;
-    `
-
-	// 执行 Mermaid.js 渲染代码
-	value, err := vm.RunString(mermaidScript)
-	if err != nil {
-		fmt.Println("Error:", err)
-		return
-	}
-
-	fmt.Println("Rendered SVG:", value)
-
-	os.Exit(22)
 	result, err := goplantuml.NewClassDiagram(dirs, ignoredDirectories, *recursive)
 	result.SetRenderingOptions(renderingOptions)
 	if err != nil {
