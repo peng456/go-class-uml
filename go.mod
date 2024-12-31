@@ -1,18 +1,16 @@
 module github.com/peng456/goclassuml
 
-go 1.23
-
-toolchain go1.23.4
+go 1.17
 
 require (
-	github.com/chromedp/cdproto v0.0.0-20241222144035-c16d098c0fb6
-	github.com/chromedp/chromedp v0.11.2
+	github.com/chromedp/cdproto v0.0.0-20241003230502-a4a8f7c660df
+	github.com/chromedp/chromedp v0.11.0
 	github.com/dop251/goja v0.0.0-20241024094426-79f3a7efcdbd
 	github.com/spf13/afero v1.11.0
 )
 
 require (
-	github.com/chromedp/sysutil v1.1.0 // indirect
+	github.com/chromedp/sysutil v1.0.0 // indirect
 	github.com/dlclark/regexp2 v1.11.4 // indirect
 	github.com/go-sourcemap/sourcemap v2.1.3+incompatible // indirect
 	github.com/gobwas/httphead v0.1.0 // indirect
