@@ -28,8 +28,8 @@ github.com/mailru/easyjson v0.7.7 h1:UGYAvKxe3sBsEDzO8ZeWOSlIQfWFlxbzLZe7hwFURr0
 github.com/mailru/easyjson v0.7.7/go.mod h1:xzfreul335JAWq5oZzymOObrkdz5UnU4kGfJJLY9Nlc=
 github.com/orisano/pixelmatch v0.0.0-20220722002657-fb0b55479cde h1:x0TT0RDC7UhAVbbWWBzr41ElhJx5tXPWkIHA2HWPRuw=
 github.com/orisano/pixelmatch v0.0.0-20220722002657-fb0b55479cde/go.mod h1:nZgzbfBr3hhjoZnS66nKrHmduYNpc34ny7RK4z5/HM0=
-github.com/peng456/go-class-uml v0.0.0-20241230130527-e707ca186ff7 h1:MTL1otUSdX6zX4mdIDRvAmk24oF2g0cbZAsiQQjnhK8=
-github.com/peng456/go-class-uml v0.0.0-20241230130527-e707ca186ff7/go.mod h1:ZfGVr1NP9l3Gbq7U5CIVTbwThmoU8Yg3P+y07mnyGdg=
+github.com/peng456/goclassuml v0.0.0-20241230130527-e707ca186ff7 h1:MTL1otUSdX6zX4mdIDRvAmk24oF2g0cbZAsiQQjnhK8=
+github.com/peng456/goclassuml v0.0.0-20241230130527-e707ca186ff7/go.mod h1:ZfGVr1NP9l3Gbq7U5CIVTbwThmoU8Yg3P+y07mnyGdg=
 github.com/spf13/afero v1.11.0 h1:WJQKhtpdm3v2IzqG8VMqrr6Rf3UYpEF239Jy9wNepM8=
 github.com/spf13/afero v1.11.0/go.mod h1:GH9Y3pIexgf1MTIWtNGyogA5MwRIDXGUr+hbWNoBjkY=
 golang.org/x/sys v0.6.0/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=

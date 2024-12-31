@@ -8,7 +8,7 @@ require (
 	github.com/chromedp/cdproto v0.0.0-20241222144035-c16d098c0fb6
 	github.com/chromedp/chromedp v0.11.2
 	github.com/dop251/goja v0.0.0-20241024094426-79f3a7efcdbd
-	github.com/peng456/go-class-uml v0.0.0-20241230130527-e707ca186ff7
+	github.com/peng456/goclassuml v0.0.0-20241230130527-e707ca186ff7
 	github.com/spf13/afero v1.11.0
 )
 

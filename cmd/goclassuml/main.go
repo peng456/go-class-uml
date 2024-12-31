@@ -11,10 +11,10 @@ import (
 	"strings"
 
 	// "../../mermaidgo"
-	"github.com/peng456/go-class-uml/mermaidgo"
+	"github.com/peng456/goclassuml/mermaidgo"
 
 	"github.com/dop251/goja"
-	goplantuml "github.com/peng456/go-class-uml/parser"
+	goplantuml "github.com/peng456/goclassuml/parser"
 )
 
 // RenderingOptionSlice will implements the sort interface
