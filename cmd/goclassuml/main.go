@@ -129,7 +129,9 @@ func main() {
 
 	// fileName := "go-class-mermaid.mm"
 	fileName, _ := getSaveFileName()
-	outFileName := "/tmp/" + fileName
+	tempDir := os.TempDir()
+	// fmt.Println("User temp directory:", tempDir)
+	outFileName := tempDir + fileName
 	fileSavePath := ""
 	switch *saveType {
 	case "svg":
