@@ -18,6 +18,8 @@ import (
 	goplantuml "github.com/peng456/goclassuml/parser"
 )
 
+const versionFlag = "0.1"
+
 // RenderingOptionSlice will implements the sort interface
 type RenderingOptionSlice []goplantuml.RenderingOption
 
@@ -50,6 +52,7 @@ func main() {
 	showConnectionLabels := flag.Bool("show-connection-labels", true, "Shows labels in the connections to identify the connections types (e.g. extends, implements, aggregates, alias of")
 	title := flag.String("title", "", "Title of the generated diagram")
 	notes := flag.String("notes", "", "Comma separated list of notes to be added to the diagram")
+	version := flag.String("version", "", "return version")
 	// output := flag.String("output", "", "output file path. If omitted, then this will default to standard output")
 	saveType := flag.String("st", "svg", "save diagram type : svg or png ")
 	scale := flag.Int("scale", 0, "0 or 2.0")
@@ -57,6 +60,12 @@ func main() {
 	aggregatePrivateMembers := flag.Bool("aggregate-private-members", false, "Show aggregations for private members. Ignored if -show-aggregations is not used.")
 	hidePrivateMembers := flag.Bool("hide-private-members", false, "Hide private fields and methods")
 	flag.Parse()
+
+	// 如何设计一个命令行工具的版本号
+	if *version != "" {
+		fmt.Println("goclassuml version:", versionFlag)
+		os.Exit(0)
+	}
 	renderingOptions := map[goplantuml.RenderingOption]interface{}{
 		goplantuml.RenderConnectionLabels:  *showConnectionLabels,
 		goplantuml.RenderFields:            !*hideFields,
