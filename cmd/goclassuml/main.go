@@ -40,6 +40,12 @@ func (as RenderingOptionSlice) Swap(i, j int) {
 }
 
 func main() {
+
+	// 判断 入参是否有 --version
+	if len(os.Args) > 1 && (os.Args[1] == "--version" || os.Args[1] == "-version" || os.Args[1] == "version") {
+		fmt.Println("version:", versionFlag)
+		return
+	}
 	recursive := flag.Bool("recursive", false, "walk all directories recursively")
 	ignore := flag.String("ignore", "", "comma separated list of folders to ignore")
 	showAggregations := flag.Bool("show-aggregations", false, "renders public aggregations even when -hide-connections is used (do not render by default)")
@@ -52,7 +58,6 @@ func main() {
 	showConnectionLabels := flag.Bool("show-connection-labels", true, "Shows labels in the connections to identify the connections types (e.g. extends, implements, aggregates, alias of")
 	title := flag.String("title", "", "Title of the generated diagram")
 	notes := flag.String("notes", "", "Comma separated list of notes to be added to the diagram")
-	version := flag.String("version", "", "return version")
 	// output := flag.String("output", "", "output file path. If omitted, then this will default to standard output")
 	saveType := flag.String("st", "svg", "save diagram type : svg or png ")
 	scale := flag.Int("scale", 0, "0 or 2.0")
@@ -61,11 +66,6 @@ func main() {
 	hidePrivateMembers := flag.Bool("hide-private-members", false, "Hide private fields and methods")
 	flag.Parse()
 
-	// 如何设计一个命令行工具的版本号
-	if *version != "" {
-		fmt.Println("goclassuml version:", versionFlag)
-		os.Exit(0)
-	}
 	renderingOptions := map[goplantuml.RenderingOption]interface{}{
 		goplantuml.RenderConnectionLabels:  *showConnectionLabels,
 		goplantuml.RenderFields:            !*hideFields,
