@@ -5,6 +5,7 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"io"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -58,7 +59,7 @@ func main() {
 	showConnectionLabels := flag.Bool("show-connection-labels", true, "Shows labels in the connections to identify the connections types (e.g. extends, implements, aggregates, alias of")
 	title := flag.String("title", "", "Title of the generated diagram")
 	notes := flag.String("notes", "", "Comma separated list of notes to be added to the diagram")
-	// output := flag.String("output", "", "output file path. If omitted, then this will default to standard output")
+	outputType := flag.Int("ot", 1, "output type.  1: app  2: string, default 1")
 	saveType := flag.String("st", "svg", "save diagram type : svg or png ")
 	scale := flag.Int("scale", 0, "0 or 2.0")
 	showOptionsAsNote := flag.Bool("show-options-as-note", false, "Show a note in the diagram with the none evident options ran with this CLI")
@@ -132,10 +133,18 @@ func main() {
 	re, _ := mermaidgo.NewRenderEngine(ctx)
 	defer re.Cancel()
 
+	// 输出方式 0 字符串直接输出 1 文件（默认打开）
+
+	var writer io.Writer
+	if *outputType == 2 {
+		writer = os.Stdout
+
+		fmt.Fprint(writer, rendered)
+		return
+	}
+
 	content := rendered
-
 	// 根据 参数 获取 name
-
 	// fileName := "go-class-mermaid.mm"
 	fileName, _ := getSaveFileName()
 	tempDir := os.TempDir()
