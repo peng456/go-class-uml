@@ -133,6 +133,32 @@ func main() {
 	re, _ := mermaidgo.NewRenderEngine(ctx)
 	defer re.Cancel()
 
+	content := rendered
+	// 根据 参数 获取 name
+	// fileName := "go-class-mermaid.mm"
+	fileName, _ := getSaveFileName()
+	tempDir := os.TempDir()
+	// fmt.Println("User temp directory:", tempDir)
+	outFileName := tempDir + fileName
+	fileSavePath := ""
+	content_save := []byte{}
+	switch *saveType {
+	case "svg":
+		svg_content, _ := re.Render(content)
+		fileSavePath = outFileName + ".svg"
+		content_save = []byte(svg_content)
+
+	case "png":
+		if *scale == (int)(0) {
+			// get the result as PNG bytes
+			content_save, _, _ = re.RenderAsPng(content)
+			fileSavePath = outFileName + ".png"
+		} else {
+			fileSavePath = outFileName + "_scaled.png"
+			content_save, _, _ = re.RenderAsScaledPng(content, 2.0)
+		}
+	}
+
 	// 输出方式 0 字符串直接输出 1 文件（默认打开）
 
 	var writer io.Writer
@@ -143,35 +169,7 @@ func main() {
 		return
 	}
 
-	content := rendered
-	// 根据 参数 获取 name
-	// fileName := "go-class-mermaid.mm"
-	fileName, _ := getSaveFileName()
-	tempDir := os.TempDir()
-	// fmt.Println("User temp directory:", tempDir)
-	outFileName := tempDir + fileName
-	fileSavePath := ""
-	switch *saveType {
-	case "svg":
-		svg_content, _ := re.Render(content)
-		fileSavePath = outFileName + ".svg"
-		os.WriteFile(fileSavePath, []byte(svg_content), 0644)
-
-	case "png":
-		if *scale == (int)(0) {
-			// get the result as PNG bytes
-			png_in_bytes, _, _ := re.RenderAsPng(content)
-			fileSavePath = outFileName + ".png"
-
-			os.WriteFile(fileSavePath, png_in_bytes, 0644)
-
-		} else {
-			fileSavePath = outFileName + "_scaled.png"
-
-			scaled_png_in_bytes, _, _ := re.RenderAsScaledPng(content, 2.0)
-			os.WriteFile(fileSavePath, scaled_png_in_bytes, 0644)
-		}
-	}
+	os.WriteFile(fileSavePath, content_save, 0644)
 
 	// 是否打开文件 默认 vscode 或者调用系统 选择对应的软件打开
 	errOpenFile := openFileWithVSCode(fileSavePath)
